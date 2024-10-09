@@ -1,12 +1,14 @@
 Package: producethis
-Title: What the Package Does (One Line, Title Case)
+Title: Set Up Commonly Used 🏭 Components
 Version: 0.0.0.9000
-Authors@R: 
+Authors@R:
     person("Thomas Lin", "Pedersen", , "thomasp85@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-5147-4711"))
-Description: What the package does (one paragraph).
+Description: Automate tasks related to putting R code in production. Based on an
+    opinionated folder structure it provides a variety of helpers for testing,
+    deploying, and running R code in production.
 License: MIT + file LICENSE
-Suggests: 
+Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Encoding: UTF-8
@@ -14,3 +16,13 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 URL: https://github.com/r-lib/producethis
 BugReports: https://github.com/r-lib/producethis/issues
+Imports:
+    brio,
+    cli,
+    connectapi,
+    desc,
+    glue,
+    lifecycle,
+    rlang (>= 1.1.0),
+    rsconnect,
+    withr
