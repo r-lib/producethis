@@ -9,7 +9,7 @@ get_git_remote <- function() {
     ))
   }
   # We piggyback on usethis' git logic for consistency
-  settings <- getFromNamespace("target_repo", "usethis")()
+  settings <- utils::getFromNamespace("target_repo", "usethis")()
   list(
     host = settings$host_url,
     repository = settings$repo_spec
