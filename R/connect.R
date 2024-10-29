@@ -33,12 +33,30 @@ prepare_for_connect <- function() {
 #' @return This function is called for its sideeffects
 #' @export
 deploy_repo_to_connect <- function(branch = "gh-connect") {
-  client <- connectapi::connect()
+  if (is.na(server)) {
+    cli::cli_abort(c(
+      "No Posit Connect server provided",
+      i = "Please set the {.field CONNECT_SERVER} environment variable to the deployment server url"
+    ))
+  }
+  cli::cli_bullets(c(">" = "Connecting to Posit Connect at {.url {server}}"))
+  try_fetch(
+    client <- connectapi::connect(),
+    error = function(cnd, ...) {
+      cli::cli_abort("Failed to connect to {.url {server}}", parent = cnd)
+    }
+  )
+
+  cli::cli_bullets(c(">" = "Determining Git remote location"))
   repo <- get_git_remote()
   git_url <- glue("{repo$host}/{repo$repository}")
+  cli::cli_bullets(v = "Found remote at {.url {git_url}}")
+
+  cli::cli_bullets(c(">" = "Looking for already deployed version"))
   guid <- get_repo_guid(client, git_url)
   is_published <- !is.null(guid)
   if (!is_published) {
+    cli::cli_bullets(c(i = "Project is undeployed. Deploying now"))
     content <- connectapi::deploy_repo(
       client,
       repository = git_url,
@@ -46,30 +64,35 @@ deploy_repo_to_connect <- function(branch = "gh-connect") {
       name = desc$get_field("Package")
     )
   } else {
+    cli::cli_bullets(v = "Found deployed project with guid: {guid}")
     content <- connectapi::content_item(client, guid)
   }
 
   desc <- desc::desc(usethis::proj_path("DESCRIPTION"))
 
   # Set standard info: Name, Title, Description
+  cli::cli_bullets(c(">" = "Updating project name, title, and description based on DESCRIPTION file"))
   connectapi::content_update(content, name = desc$get_field("Package"), title = desc$get_field("Title"), description = desc$get_field("Description"))
 
   # Set vanity URL
   if (desc$has_fields("URL")) {
     url <- url <- desc$get_field("URL")
     url <- sub(paste0(client$server, "/"), "", url, fixed = TRUE)
+    cli::cli_bullets(c(">" = "Setting vanity URL to {.field url}"))
     connectapi::set_vanity_url(content, url)
   } else {
+    cli::cli_bullets(c(">" = "Unsetting vanity URL"))
     connectapi::delete_vanity_url(content)
   }
 
   # Set tags
+  cli::cli_bullets(c(">" = "Updating project tags"))
+  current_tags <- content$tags()
+  lapply(current_tags, function(tag) {
+    content$tag_delete(tag$id)
+  })
   if (desc$has_fields("Tags")) {
     tags <- desc$get_field("Tags")
-    current_tags <- content$tags()
-    lapply(current_tags, function(tag) {
-      content$tag_delete(tag$id)
-    })
     lapply(tags, function(tag) {
       tag <- strsplit(tag, ";\\s*")[[1]]
       connectapi::set_content_tag_tree(content, !!!tag)
@@ -80,7 +103,9 @@ deploy_repo_to_connect <- function(branch = "gh-connect") {
 
   # Set scheduling info
 
+  cli::cli_bullets(c(">" = "Requesting Posit Connect to fetch from remote"))
   connectapi::deploy_repo_update(content)
+  cli::cli_bullets(c(v = "Project deployed"))
 }
 
 get_repo_guid <- function(client, git_url) {
