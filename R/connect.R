@@ -53,6 +53,8 @@ deploy_repo_to_connect <- function(branch = "gh-connect") {
   git_url <- glue("{repo$host}/{repo$repository}")
   cli::cli_bullets(c(v = "Found remote at {.url {git_url}}"))
 
+  desc <- desc::desc(usethis::proj_path("DESCRIPTION"))
+  
   cli::cli_bullets(c(">" = "Looking for already deployed version"))
   guid <- get_repo_guid(client, git_url)
   is_published <- !is.null(guid)
@@ -68,8 +70,6 @@ deploy_repo_to_connect <- function(branch = "gh-connect") {
     cli::cli_bullets(c(v = "Found deployed project with guid: {guid}"))
     content <- connectapi::content_item(client, guid)
   }
-
-  desc <- desc::desc(usethis::proj_path("DESCRIPTION"))
 
   # Set standard info: Name, Title, Description
   cli::cli_bullets(c(">" = "Updating project name, title, and description based on DESCRIPTION file"))
