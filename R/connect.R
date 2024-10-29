@@ -43,7 +43,7 @@ deploy_repo_to_connect <- function(branch = "gh-connect") {
       client,
       repository = git_url,
       branch = branch,
-      name = basename(repo)
+      name = desc$get_field("Package")
     )
   } else {
     content <- connectapi::content_item(client, guid)
