@@ -33,7 +33,7 @@ prepare_for_connect <- function() {
 #' @return This function is called for its sideeffects
 #' @export
 deploy_repo_to_connect <- function(branch = "gh-connect") {
-  server <- Sys.getenv(paste0(prefix, "_SERVER"), NA_character_)
+  server <- Sys.getenv("CONNECT_SERVER", NA_character_)
   if (is.na(server)) {
     cli::cli_abort(c(
       "No Posit Connect server provided",
