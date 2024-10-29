@@ -51,7 +51,7 @@ deploy_repo_to_connect <- function(branch = "gh-connect") {
   cli::cli_bullets(c(">" = "Determining Git remote location"))
   repo <- get_git_remote()
   git_url <- glue("{repo$host}/{repo$repository}")
-  cli::cli_bullets(v = "Found remote at {.url {git_url}}")
+  cli::cli_bullets(c(v = "Found remote at {.url {git_url}}"))
 
   cli::cli_bullets(c(">" = "Looking for already deployed version"))
   guid <- get_repo_guid(client, git_url)
@@ -65,7 +65,7 @@ deploy_repo_to_connect <- function(branch = "gh-connect") {
       name = desc$get_field("Package")
     )
   } else {
-    cli::cli_bullets(v = "Found deployed project with guid: {guid}")
+    cli::cli_bullets(c(v = "Found deployed project with guid: {guid}"))
     content <- connectapi::content_item(client, guid)
   }
 
