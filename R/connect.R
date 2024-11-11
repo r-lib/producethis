@@ -16,7 +16,7 @@ prepare_for_connect <- function() {
     app = prepare_for_connect_app(),
     # api
     # report
-    stop("Type not supported")
+    cli::cli_abort("Type {.field {type}} not supported")
   )
 }
 
