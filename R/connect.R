@@ -13,7 +13,7 @@ prepare_for_connect <- function() {
   switch(
     tolower(type),
     batch = prepare_for_connect_batch(),
-    # app
+    app = prepare_for_connect_app(),
     # api
     # report
     stop("Type not supported")
@@ -139,4 +139,14 @@ get_repo_guid <- function(client, git_url) {
 prepare_for_connect_batch <- function() {
   usethis::use_template("batch_script.R", "script.R", package = "producethis")
   rsconnect::writeManifest(appPrimaryDoc = "script.R", appMode = "quarto-static")
+}
+
+prepare_for_connect_app <- function() {
+  desc <- desc::desc(usethis::proj_path("DESCRIPTION"))
+  if (desc$has_fields("AppFun")) {
+    app_fun <- desc$get_field("AppFun")
+  } else {
+    app_fun <- "app"
+  }
+  usethis::use_template("app_script.R", "app.R", package = "producethis", data = list(app = app_fun))
 }
