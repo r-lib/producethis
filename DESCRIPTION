@@ -2,7 +2,7 @@ Package: producethis
 Title: Set Up Commonly Used 🏭 Components
 Version: 0.0.0.9000
 Authors@R:
-    person("Thomas Lin", "Pedersen", , "thomasp85@gmail.com", role = c("aut", "cre"),
+    person("Thomas Lin", "Pedersen", , "thomas.pedersen@posit.co", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-5147-4711"))
 Description: Automate tasks related to putting R code in production. Based on an
     opinionated folder structure it provides a variety of helpers for testing,
