@@ -14,7 +14,7 @@ prepare_for_connect <- function() {
     tolower(type),
     batch = prepare_for_connect_batch(),
     app = prepare_for_connect_app(),
-    # api
+    api = prepare_for_connect_api(),
     # report
     cli::cli_abort("Type {.field {type}} not supported")
   )
@@ -148,5 +148,27 @@ prepare_for_connect_app <- function() {
   } else {
     app_fun <- "app"
   }
-  usethis::use_template("app_script.R", "app.R", package = "producethis", data = list(app = app_fun))
+  usethis::use_template(
+    "app_script.R",
+    "app.R",
+    package = "producethis",
+    data = list(app = app_fun)
+  )
+}
+
+prepare_for_connect_api <- function() {
+  desc <- desc::desc(usethis::proj_path("DESCRIPTION"))
+  usethis::use_template(
+    "api_script.R",
+    "entrypoint.R",
+    package = "producethis",
+    data = list(
+      title = desc$get_field("Title"),
+      description = desc$get_field("Description"),
+      version = desc$get_version(),
+      name = paste(desc$get_author()$given, desc$get_author()$family),
+      email = desc$get_author()$email,
+      url = desc$get_field("BugReports")
+    )
+  )
 }
