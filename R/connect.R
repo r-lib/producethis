@@ -154,6 +154,7 @@ prepare_for_connect_app <- function() {
     package = "producethis",
     data = list(app = app_fun)
   )
+  rsconnect::writeManifest(appPrimaryDoc = "app.R", appMode = "shiny")
 }
 
 prepare_for_connect_api <- function() {
@@ -171,4 +172,5 @@ prepare_for_connect_api <- function() {
       url = desc$get_field("BugReports")
     )
   )
+  rsconnect::writeManifest(appPrimaryDoc = "entrypoint.R", appMode = "api")
 }
