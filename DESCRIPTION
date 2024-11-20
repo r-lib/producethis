@@ -17,12 +17,16 @@ RoxygenNote: 7.3.2
 URL: https://github.com/r-lib/producethis
 BugReports: https://github.com/r-lib/producethis/issues
 Imports:
+    base64enc,
     cli,
     connectapi,
     desc,
+    fs,
     glue,
+    httr2,
     lifecycle,
     rlang (>= 1.1.0),
     rsconnect,
+    sodium,
     usethis,
     utils

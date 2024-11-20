@@ -1,0 +1,59 @@
+# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
+# Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
+on:
+  push:
+    branches: [{{branch}}]
+  workflow_dispatch:
+
+{{=<% %>=}}
+name: connect.yaml
+
+permissions: read-all
+
+jobs:
+  connect:
+    runs-on: ubuntu-latest
+    # Only restrict concurrency for non-PR jobs
+    concurrency:
+      group: pkgdown-${{ github.event_name != 'pull_request' || github.run_id }}
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      CONNECT_SERVER: ${{ secrets.CONNECT_SERVER }}
+      CONNECT_API_KEY: ${{ secrets.CONNECT_API_KEY }}
+      PKG_INCLUDE_LINKINGTO: true
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: r-lib/producethis, any::testthat
+          needs: check
+
+      - name: Test project
+        if: ${{ hashFiles('tests/testthat.R') != '' }}
+        run: testthat::test_local(reporter = testthat::check_reporter())
+        shell: Rscript {0}
+
+      - name: Prepare for deployment
+        run: producethis::prepare_for_connect()
+        shell: Rscript {0}
+
+      - name: Push to deployment branch
+        uses: JamesIves/github-pages-deploy-action@v4.5.0
+        with:
+          clean: false
+          branch: gh-connect
+          folder: .
+
+      - name: Deploy to Posit Connect
+        run: producethis::deploy_repo_to_connect()
+        shell: Rscript {0}
+<%={{ }}=%>

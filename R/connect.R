@@ -1,3 +1,42 @@
+#' Publish to Posit Connect from a github repository
+#'
+#' This function sets up the `connect.yaml` action that powers the connect
+#' deployment from github. Further, it takes the local `CONNECT_SERVER` and
+#' `CONNECT_API_KEY` environment variables and, if they exist, sets them as
+#' secrets on the remote, for the action to use.
+#'
+#' @param from A character vector giving which branch(es) to publish from
+#'
+#' @return This function is called for its side effects
+#'
+#' @export
+#'
+use_github_connect <- function(from = c("main", "master")) {
+  fs::dir_create(fs::path(".github", "workflows"))
+  # TODO: Add support for publishing from tags
+  usethis::use_template(
+    "connect.yaml",
+    ".github/workflows/connect.yaml",
+    package = "producethis",
+    data = list(branch = paste(from, collapse = ", "))
+  )
+  remote <- get_git_remote()
+
+  key <- get_github_public_key(remote$repository, remote$host)
+
+  success <- vapply(c("CONNECT_SERVER", "CONNECT_API_KEY"), function(x) {
+    set_github_secret(x, remote$repository, remote$host, key)
+  }, logical(1))
+
+  if (any(!success)) {
+    cli::cli_bullets(c(
+      "Navigate to {.url {remote$host}/{remote$repository}/settings/secrets/actions}",
+      "!" = "Set the {.field CONNECT_SERVER} secret to the URL of the Posit Connect server to deploy to",
+      "!" = "Set the {.field CONNECT_API_KEY} secret to your API key for the server"
+    )[c(TRUE, success)])
+  }
+}
+
 #' Prepares a production project for deployment on connect
 #'
 #' This function generates all the necessary files for your project to be
