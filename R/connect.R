@@ -78,10 +78,16 @@ deploy_repo_to_connect <- function(branch = "gh-connect") {
 
   # Set vanity URL
   if (desc$has_fields("URL")) {
-    url <- url <- desc$get_field("URL")
-    url <- sub(paste0(client$server, "/"), "", url, fixed = TRUE)
-    cli::cli_bullets(c(">" = "Setting vanity URL to {.field url}"))
-    connectapi::set_vanity_url(content, url)
+    url <- trimws(strsplit(desc$get_field("URL"), ",", fixed = TRUE)[[1]])
+    url <- url[grep(client$server, url)]
+    if (length(url) == 0) {
+      cli::cli_bullets(c(">" = "Unsetting vanity URL"))
+      connectapi::delete_vanity_url(content)
+    } else {
+      url <- sub(paste0(client$server, "/"), "", url[1], fixed = TRUE)
+      cli::cli_bullets(c(">" = "Setting vanity URL to {.field url}"))
+      connectapi::set_vanity_url(content, url)
+    }
   } else {
     cli::cli_bullets(c(">" = "Unsetting vanity URL"))
     connectapi::delete_vanity_url(content)
