@@ -9,6 +9,8 @@ Description: Automate tasks related to putting R code in production. Based on an
     deploying, and running R code in production.
 License: MIT + file LICENSE
 Suggests:
+    plumber,
+    shiny,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Encoding: UTF-8
