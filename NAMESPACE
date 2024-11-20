@@ -3,6 +3,8 @@
 export(create_production)
 export(deploy_repo_to_connect)
 export(prepare_for_connect)
+export(set_envvars)
+export(use_envvars)
 export(use_github_connect)
 import(rlang)
 importFrom(glue,glue)
