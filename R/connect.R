@@ -199,6 +199,9 @@ prepare_for_connect_app <- function() {
     package = "producethis",
     data = list(app = app_fun)
   )
+
+  fs::file_create(usethis::proj_path("R", "_disable_autoload", ext = "R"))
+
   rsconnect::writeManifest(appMode = "shiny")
 }
 
