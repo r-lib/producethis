@@ -14,7 +14,10 @@
 #' @export
 #'
 try_connect_run <- function(clean = TRUE) {
-  temp_path <- fs::path_temp()
+  # Make sure the current project is set
+  usethis::proj_get()
+
+  temp_path <- fs::path_temp("connect")
 
   fs::dir_copy(".", temp_path)
 
@@ -24,32 +27,59 @@ try_connect_run <- function(clean = TRUE) {
 
   # TODO: Make sure the project adheres to renv lockfile
   usethis::with_project(temp_path, {
-    type <- desc::desc(usethis::proj_path("DESCRIPTION"))$get_field("Type")
+    type <- tolower(desc::desc(usethis::proj_path("DESCRIPTION"))$get_field("Type"))
+    envvars <- as.character(unlist(get_envvars()))
 
     prepare_for_connect()
 
-    set_envvars()
+    sink <- fs::file_temp()
+    on.exit(fs::file_delete(sink), add = TRUE)
 
-    switch(type,
-      batch = try_connect_run_batch(),
-      app = try_connect_run_app(),
-      api = try_connect_run_api(),
+    process <- switch(type,
+      batch = callr::r(\() producethis:::try_connect_run_batch(), env = unlist(envvars)),
+      app = callr::r_bg(\() producethis:::try_connect_run_app(), env = unlist(envvars), stdout = sink, stderr = sink),
+      api = callr::r_bg(\() producethis:::try_connect_run_api(), env = unlist(envvars), stdout = sink, stderr = sink),
       # report
       cli::cli_abort("Type {.field {type}} not supported")
     )
+
+    if (type %in% c("app", "api")) {
+      on.exit(process$kill(), add = TRUE, after = FALSE)
+
+      while(TRUE) {
+        if (!process$is_alive()) {
+          return(process$get_result())
+        }
+        output <- readLines(sink)
+        if (any(grepl("Listening on ", output))) {
+          break
+        }
+      }
+
+      utils::browseURL("http://127.0.0.1:3760")
+      skip <- 0
+      while(TRUE) {
+        output <- readLines(sink)
+        if (skip != 0) output <- output[-seq_len(skip)]
+        if (length(output != 0)) {
+          skip <- skip + length(output)
+          cat(output, sep = "\n")
+        }
+      }
+    }
   })
 }
 
 try_connect_run_batch <- function() {
-  rlang::check_installed("shiny")
-  shiny::runApp()
+  source("script.R", verbose = FALSE)
 }
 
 try_connect_run_app <- function() {
   rlang::check_installed("shiny")
-  shiny::runApp()
+  shiny::runApp(host = "127.0.0.1", port = 3760)
 }
 
 try_connect_run_api <- function() {
-  source("script.R", verbose = FALSE)
+  rlang::check_installed("plumber")
+  plumber::plumb() |> plumber::pr_run(host = "127.0.0.1", port = 3760)
 }
