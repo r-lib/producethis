@@ -19,7 +19,7 @@
 #'
 #' @note **NEVER** store secret/confidential information in this way. This is
 #' purely for use for behavior changing environment variables.
-#' 
+#'
 use_envvars <- function(...) {
   # TODO: We might want to warn users never to put confidential info into env vars like this
   envs <- list2(...)
@@ -50,13 +50,19 @@ use_envvars <- function(...) {
 #' @rdname use_envvars
 #' @export
 set_envvars <- function() {
+  vars <- get_envvars()
+  inject(Sys.setenv(!!!vars))
+  invisible()
+}
+
+get_envvars <- function() {
   desc <- desc::desc(usethis::proj_path("DESCRIPTION"))
+  vars <- list()
   if (desc$has_fields("Envvar")) {
     vars <- eval(parse(text = desc$get_field("Envvar")))
     if (!is.list(vars) || is.null(names(vars)) || any(!vapply(vars, is.character, logical(1))) || any(lengths(vars) != 1)) {
       cli::cli_abort("{.field Envvar} must contain a named list of strings")
     }
-    inject(Sys.setenv(!!!vars))
   }
-  invisible()
+  vars
 }
