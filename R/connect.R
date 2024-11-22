@@ -146,7 +146,7 @@ deploy_repo_to_connect <- function(branch = "gh-connect") {
     })
   }
 
-  # Set additional stuff related to the environment using content_update
+  # TODO: Set additional stuff related to the environment using content_update
 
   # Set environment variables
   # TODO: We need to make sure these values are propagated to user session and GHA
@@ -162,6 +162,52 @@ deploy_repo_to_connect <- function(branch = "gh-connect") {
   connectapi::set_environment_all(env, !!!vars)
 
   # Set scheduling info
+  # Set access
+  if (desc$has_fields("Access/Global")) {
+    global <- desc$get_field("Access/Global")
+    global_sanitized <- gsub("\\W", "_", tolower(global))
+    allowed <- c("all", "logged_in", "acl")
+    if (!global_sanitized %in% allowed) {
+      cli::cli_abort(c(
+        "Unknown Global Access type {.field {global}}",
+        i = "Use one of {.or {.field {allowed}}}"
+      ))
+    }
+    connectapi::content_update_access_type(content, global_sanitized)
+  } else {
+    connectapi::content_update_access_type(content, "acl")
+  }
+  current_access <- connectapi::get_content_permissions(content, FALSE)
+  for (i in seq_len(nrow(current_access))) {
+    switch(current_access$principal_type[i],
+      user = connectapi::content_delete_user(content, current_access$principal_guid[[i]]),
+      group = connectapi::content_delete_group(content, current_access$principal_guid[[i]])
+    )
+  }
+  if (desc$has_fields("Access/Users")) {
+    users <- trimws(strsplit(desc$get_field("Access/Users"))[[1]])
+    for (user in users) {
+      user <- try_fetch(
+        connectapi::user_guid_from_username(client, user),
+        error = function(...) {
+          cli::cli_abort("Unknown Connect user: {.field {user}}")
+        }
+      )
+      connectapi::content_add_user(content, user)
+    }
+  }
+  if (desc$has_fields("Access/Groups")) {
+    groups <- trimws(strsplit(desc$get_field("Access/Groups"))[[1]])
+    for (group in groups) {
+      group_search <- client$GET("v1/groups", query = list(prefix = group))
+      search_names <- vapply(group_search$results, `[[`, character(1), "name")
+      if (length(search_names) == 0 || !any(group == search_names)) {
+        cli::cli_abort("Unknown Connect group: {.field {group}}")
+      }
+      group <- group_search$results[[which(group == search_names)]]$guid
+      connectapi::content_add_group(content, group)
+    }
+  }
 
   cli::cli_bullets(c(">" = "Requesting Posit Connect to fetch from remote"))
   connectapi::deploy_repo_update(content)
