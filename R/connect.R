@@ -185,7 +185,7 @@ deploy_repo_to_connect <- function(branch = "gh-connect") {
     )
   }
   if (desc$has_fields("Access/Users")) {
-    users <- trimws(strsplit(desc$get_field("Access/Users"))[[1]])
+    users <- trimws(strsplit(desc$get_field("Access/Users"), ",")[[1]])
     for (user in users) {
       user <- try_fetch(
         connectapi::user_guid_from_username(client, user),
@@ -197,7 +197,7 @@ deploy_repo_to_connect <- function(branch = "gh-connect") {
     }
   }
   if (desc$has_fields("Access/Groups")) {
-    groups <- trimws(strsplit(desc$get_field("Access/Groups"))[[1]])
+    groups <- trimws(strsplit(desc$get_field("Access/Groups"), ",")[[1]])
     for (group in groups) {
       group_search <- client$GET("v1/groups", query = list(prefix = group))
       search_names <- vapply(group_search$results, `[[`, character(1), "name")
