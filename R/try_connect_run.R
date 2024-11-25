@@ -51,12 +51,18 @@ try_connect_run <- function(clean = TRUE) {
           return(process$get_result())
         }
         output <- readLines(sink)
-        if (any(grepl("Listening on ", output))) {
+        if (type == "app" && any(grepl("Listening on ", output))) {
+          break
+        }
+        if (type == "api" && any(grepl("Running plumber API ", output))) {
           break
         }
       }
 
-      utils::browseURL("http://127.0.0.1:3760")
+      url <- "http://127.0.0.1:3760"
+      if (type == "api") url <- paste0(url, "/__docs__/")
+      utils::browseURL(url)
+
       skip <- 0
       while(TRUE) {
         output <- readLines(sink)
