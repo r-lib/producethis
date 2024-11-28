@@ -551,4 +551,20 @@ check_data_frame <- function(x,
   )
 }
 
+check_obj <- function(x, test, what, ..., arg = caller_arg(x), call = caller_env()) {
+  if (!missing(x)) {
+    if (test(x)) {
+      return(invisible(NULL))
+    }
+  }
+
+  stop_input_type(
+    x,
+    what,
+    ...,
+    arg = arg,
+    call = call
+  )
+}
+
 # nocov end

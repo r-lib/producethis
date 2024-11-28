@@ -146,7 +146,15 @@ deploy_repo_to_connect <- function(branch = "gh-connect") {
     })
   }
 
-  # TODO: Set additional stuff related to the environment using content_update
+  # Set additional stuff related to the environment using content_update
+  cli::cli_bullets(c(">" = "Updating deployment settings"))
+  settings <- get_connect_defaults()
+  if (desc$has_fields("Settings/Connect")) {
+    local_settings <- eval(parse(text = desc$get_field("Settings/Connect")))
+    validate_connect_settings(local_settings)
+    settings <- utils::modifyList(settings, local_settings)
+  }
+  connectapi::content_update(content, !!!settings)
 
   # Set environment variables
   # TODO: We need to make sure these values are propagated to user session and GHA
@@ -162,7 +170,20 @@ deploy_repo_to_connect <- function(branch = "gh-connect") {
   connectapi::set_environment_all(env, !!!vars)
 
   # Set scheduling info
+  cli::cli_bullets(c(">" = "Updating scheduling"))
+  schedule <- get_connect_schedule()
+  if (tolower(desc$get_field("Type")) %in% c("script", "report")) {
+    cur_schedule <- connectapi::get_variant_schedule(connectapi::get_variant_default(content))
+    connectapi::set_schedule_remove(cur_schedule)
+    if (!is.null(schedule)) {
+      connectapi::set_schedule(cur_schedule, !!!schedule)
+    }
+  } else if (!is.null(schedule)) {
+    cli::cli_bullets("!" = "Ignoring schedule for {.field {desc$get_field('Type')}} deployments")
+  }
+
   # Set access
+  cli::cli_bullets(c(">" = "Updating access permissions"))
   if (desc$has_fields("Access/Global")) {
     global <- desc$get_field("Access/Global")
     global_sanitized <- gsub("\\W", "_", tolower(global))
@@ -209,6 +230,15 @@ deploy_repo_to_connect <- function(branch = "gh-connect") {
     }
   }
 
+  # Set image thumbnail
+  cli::cli_bullets(c(">" = "Updating thumbnail"))
+  if (fs::file_exists(usethis::proj_path("logo.png"))) {
+    connectapi::set_image_path(content, usethis::proj_path("logo.png"))
+  } else if (connectapi::has_image(content)) {
+    connectapi::delete_image(content)
+  }
+
+  # Pushing to Connect
   cli::cli_bullets(c(">" = "Requesting Posit Connect to fetch from remote"))
   connectapi::deploy_repo_update(content)
   cli::cli_bullets(c(v = "Project deployed"))

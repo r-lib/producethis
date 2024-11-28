@@ -25,6 +25,7 @@ Imports:
     connectapi,
     desc,
     fs,
+    gh,
     glue,
     httr2,
     lifecycle,
