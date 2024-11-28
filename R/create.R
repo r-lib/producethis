@@ -13,7 +13,7 @@
 #' @return Path to the newly created project, invisibly.
 #'
 #' @export
-#' 
+#'
 create_production <- function(path, type = c("batch", "app", "api", "report"), ...) {
   type <- tolower(type[1])
   proj <- usethis::create_project(path, ...)
@@ -27,6 +27,10 @@ create_production <- function(path, type = c("batch", "app", "api", "report"), .
         "producethis"
       ), collapse = ",\n    ")
     ))
+
+    cli::cli_bullets(c("v" = "Creating {.file .Renviron}"))
+    fs::file_create(".Renviron")
+    usethis::use_git_ignore(".Renviron")
 
     switch(type[1],
       batch = usethis::use_directory("batch"),

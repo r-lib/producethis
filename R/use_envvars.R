@@ -46,6 +46,30 @@ use_envvars <- function(...) {
 
   invisible()
 }
+#' @rdname use_envvars
+#' @export
+use_local_envvars <- function(...) {
+  envs <- list2(...)
+  if (length(envs) == 0) return(invisible())
+
+  if (!is_named(envs)) {
+    cli::cli_abort("All arguments must be named")
+  }
+  if (any(!vapply(envs, is_string, logical(1)) & lengths(envs) != 0)) {
+    cli::cli_abort("All arguments must be strings")
+  }
+
+  if (!fs::file_exists(".Renviron")) {
+    cli::cli_bullets(c("v" = "Creating {.file .Renviron}"))
+    fs::file_create(".Renviron")
+    usethis::use_git_ignore(".Renviron")
+  }
+
+  # TODO: Currently just adding to an ever growing list rather than replacing if already exists
+
+  cat(paste0(names(envs), "=", envs), file = ".Renviron", sep = "\n")
+  invisible()
+}
 
 #' @rdname use_envvars
 #' @export
