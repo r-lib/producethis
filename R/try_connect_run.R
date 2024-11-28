@@ -36,9 +36,9 @@ try_connect_run <- function(clean = TRUE) {
     on.exit(fs::file_delete(sink), add = TRUE)
 
     process <- switch(type,
-      batch = callr::r(\() producethis:::try_connect_run_batch(), env = unlist(envvars)),
-      app = callr::r_bg(\() producethis:::try_connect_run_app(), env = unlist(envvars), stdout = sink, stderr = sink),
-      api = callr::r_bg(\() producethis:::try_connect_run_api(), env = unlist(envvars), stdout = sink, stderr = sink),
+      batch = callr::r(\() utils::getFromNamespace("try_connect_run_batch", "producethis")(), env = unlist(envvars)),
+      app = callr::r_bg(\() utils::getFromNamespace("try_connect_run_app", "producethis")(), env = unlist(envvars), stdout = sink, stderr = sink),
+      api = callr::r_bg(\() utils::getFromNamespace("try_connect_run_api", "producethis")(), env = unlist(envvars), stdout = sink, stderr = sink),
       # report
       cli::cli_abort("Type {.field {type}} not supported")
     )
