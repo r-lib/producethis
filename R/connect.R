@@ -244,6 +244,10 @@ deploy_repo_to_connect <- function(branch = "gh-connect") {
   cli::cli_bullets(c(v = "Project deployed"))
 }
 
+is_deploying_on_connect <- function() {
+  as.vector(fs::file_exists(usethis::proj_path(".github", "workflows", "connect", ext = "yaml")))
+}
+
 get_repo_guid <- function(client, git_url) {
   matches <- client$GET("v1/search/content", query=list(q=git_url))
 
