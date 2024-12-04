@@ -3,9 +3,7 @@
 #' ---
 #'
 
-pkgload::load_all()
-
-plumber::plumb(dir = "API/") |>
+plumber::plumb(dir = "target/") |>
   plumber::pr_set_api_spec(
     function(spec) {
       spec$info$title <- "{{title}}"

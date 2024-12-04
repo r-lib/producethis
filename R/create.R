@@ -14,9 +14,9 @@
 #'
 #' @export
 #'
-create_production <- function(path, type = c("batch", "app", "api", "report"), ...) {
+create_production <- function(path, type = c("batch", "app", "api", "report"), ..., open = rlang::is_interactive(), report_type = "default") {
   type <- tolower(type[1])
-  proj <- usethis::create_project(path, ...)
+  proj <- usethis::create_project(path, ..., open = FALSE)
 
   usethis::with_project(proj, {
     usethis::use_description(fields = list(
@@ -32,11 +32,34 @@ create_production <- function(path, type = c("batch", "app", "api", "report"), .
     fs::file_create(".Renviron")
     usethis::use_git_ignore(".Renviron")
 
-    switch(type[1],
-      batch = usethis::use_directory("batch"),
-      api = usethis::use_directory("API")
+    cli::cli_bullets(c("v" = "Creating {.file .Rprofile}"))
+    prepare_rprofile()
+
+    usethis::use_directory("target")
+
+    switch(type,
+      batch = {
+        cli::cli_bullets(c("v" = "Creating {.file script.R}"))
+        fs::file_create(fs::path("target", "script", ext = "R"))
+      },
+      api = {
+        cli::cli_bullets(c("v" = "Creating {.file plumber.R}"))
+        fs::file_create(fs::path("target", "plumber", ext = "R"))
+      },
+      app = {
+        cli::cli_bullets(c("v" = "Creating {.file app.R}"))
+        fs::file_create(fs::path("target", "app", ext = "R"))
+      },
+      report = {
+        cli::cli_bullets(c("v" = "Setting up Quarto project"))
+        quarto::quarto_create_project(type = report_type, dir = "target", no_prompt = TRUE)
+      }
     )
   }, quiet = TRUE)
+
+  if (open) {
+    usethis::proj_activate(path)
+  }
 
   invisible(proj)
 }
