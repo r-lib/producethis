@@ -37,9 +37,8 @@ jobs:
           extra-packages: r-lib/producethis, any::testthat
           needs: check
 
-      - name: Test project
-        if: ${{ hashFiles('tests/testthat.R') != '' }}
-        run: testthat::test_local(reporter = testthat::check_reporter())
+      - name: Check project
+        run: producethis::check_project()
         shell: Rscript {0}
 
       - name: Prepare for deployment
