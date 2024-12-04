@@ -5,15 +5,18 @@
 <url><loc>/LICENSE.html</loc></url>
 <url><loc>/authors.html</loc></url>
 <url><loc>/index.html</loc></url>
+<url><loc>/reference/check_project.html</loc></url>
 <url><loc>/reference/create_production.html</loc></url>
 <url><loc>/reference/deploy_repo_to_connect.html</loc></url>
 <url><loc>/reference/index.html</loc></url>
 <url><loc>/reference/prepare_for_connect.html</loc></url>
+<url><loc>/reference/prepare_for_gha.html</loc></url>
 <url><loc>/reference/producethis-package.html</loc></url>
 <url><loc>/reference/try_connect_run.html</loc></url>
 <url><loc>/reference/use_access.html</loc></url>
 <url><loc>/reference/use_envvars.html</loc></url>
 <url><loc>/reference/use_github_connect.html</loc></url>
+<url><loc>/reference/use_github_gha.html</loc></url>
 <url><loc>/reference/use_settings.html</loc></url>
 </urlset>
 
