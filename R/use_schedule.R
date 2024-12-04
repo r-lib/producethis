@@ -65,6 +65,24 @@ get_connect_schedule <- function() {
   else NULL
 }
 
+get_cron_schedule <- function() {
+  desc <- desc::desc(usethis::proj_path("DESCRIPTION"))
+  schedule <- eval_from_desc(desc, "Schedule")
+  if (length(schedule) == 0) {
+    return(NULL)
+  }
+  if (!is.null(schedule$week)) {
+    cli::cli_warn("Ignoring weekly schedules as it is not supported by cron")
+  }
+  if (!is.null(schedule$year)) {
+    cli::cli_warn("Ignoring yearly schedules as it is not supported by cron")
+  }
+  cron_schedules <- vapply(schedule[c("minute", "hour", "day", "month", "weekday")], function(x) {
+    at_as_cron(as_schedule_at(x))
+  }, character(1))
+  paste(cron_schedules, collapse = " ")
+}
+
 connect_yearly <- function(schedule) {
   connect_standard(
     schedule,
@@ -300,9 +318,54 @@ at <- function(x, to = NULL, step = NULL) {
   if (length(x) > 1 && (!is.null(to) || !is.null(step))) {
     cli::cli_abort("{.arg to} and {.arg step} can only be used if {.arg x} is a scalar")
   }
+  if (is.null(x) && !is.null(to)) {
+    cli::cli_abort("{.arg to} cannot be given if {.arg x} is {.val NULL}")
+  }
   structure(list(x), to = to, step = step, class = "schedule_at")
 }
 is_schedule_at <- function(x) inherits(x, "schedule_at")
+
+as_schedule_at <- function(x, length = NULL) {
+  if (is_schedule_at(x)) {
+    return(x)
+  }
+  if (is.null(x)) {
+    return(at(x))
+  }
+  if (!is_schedule_interval(x)) {
+    cli::cli_abort("{.arg x} must be {.val NULL} or a {.cls schedule_interval} object")
+  }
+  check_number_whole(length, allow_null = TRUE)
+  if (!is.null(length) && !is_integerish(length/x[[1]]) ) {
+    cli::cli_abort("The {length} isn't exactly divisible by the provided interval ({x[[1]]})")
+  }
+  at(NULL, step = x[[1]])
+}
+
+at_as_cron <- function(x) {
+  from <- x[[1]]
+  to <- attr(x, "to")
+  step <- attr(x, "step")
+  if (length(from) > 1) {
+    return(paste0(from, collapse = ","))
+  }
+  if (is.null(from) && !is.null(to)) {
+    # Should not happen but for safety
+    from <- 0
+  }
+  res <- ""
+  if (is.null(from)) {
+    res <- "*"
+  } else if (is.null(to)) {
+    res <- as.character(from)
+  } else {
+    res <- paste0(from, "-", to)
+  }
+  if (!is.null(step)) {
+    res <- paste0(res, "/", step)
+  }
+  res
+}
 #' @export
 format.schedule_at <- function(x, ...) {
   val <- x[[1]]
