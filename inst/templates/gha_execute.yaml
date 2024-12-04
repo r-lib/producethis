@@ -1,0 +1,60 @@
+# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
+# Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
+on:
+{{#has_push}}
+  push:
+    branches: [gh-gha]
+{{/has_push}}
+{{#has_schedule}}
+  schedule:
+    cron: '{{schedule}}'
+{{/has_schedule}}
+  workflow_dispatch:
+
+{{=<% %>=}}
+name: gha_execute.yaml
+
+permissions: read-all
+
+jobs:
+  gha:
+    runs-on: ubuntu-latest
+    # Only restrict concurrency for non-PR jobs
+    concurrency:
+      group: pkgdown-${{ github.event_name != 'pull_request' || github.run_id }}
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+<%#envvars%>
+      <%name%>: <%value%>
+<%/envvars%>
+<%#secrets%>
+      <%name%>: ${{ secrets.<%name%> }}
+<%/secrets%>
+      PKG_INCLUDE_LINKINGTO: true
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-gha
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+
+      - name: Execute deployment
+        run: source("script.R")
+        shell: Rscript {0}
+
+      - name: Deploying to GitHub
+        uses: JamesIves/github-pages-deploy-action@v4.5.0
+        with:
+          clean: true
+          branch: <%result_branch%>
+          folder: <%output_dir%>
+
+<%={{ }}=%>
