@@ -4,7 +4,13 @@
 \alias{create_production}
 \title{Create a new production project}
 \usage{
-create_production(path, type = c("batch", "app", "api", "report"), ...)
+create_production(
+  path,
+  type = c("batch", "app", "api", "report"),
+  ...,
+  open = rlang::is_interactive(),
+  report_type = "default"
+)
 }
 \arguments{
 \item{path}{A path. If it exists, it is used. If it does not exist, it is
@@ -22,13 +28,14 @@ If \code{FALSE} and a non-package project, a sentinel \code{.here} file is place
 that the directory can be recognized as a project by the
 \href{https://here.r-lib.org}{here} or
 \href{https://rprojroot.r-lib.org}{rprojroot} packages.}
-    \item{\code{open}}{If \code{TRUE}, \link[usethis:proj_activate]{activates} the new project:
+  }}
+
+\item{open}{If \code{TRUE}, \link[usethis:proj_activate]{activates} the new project:
 \itemize{
 \item If using RStudio desktop, the package is opened in a new session.
 \item If on RStudio server, the current RStudio project is activated.
 \item Otherwise, the working directory and active project is changed.
 }}
-  }}
 }
 \value{
 Path to the newly created project, invisibly.

@@ -51,19 +51,23 @@ use_connect_settings <- function(...) {
   validate_connect_settings(settings)
   settings[vapply(settings, is.na, logical(1))] <- NA
   desc <- desc::desc(usethis::proj_path("DESCRIPTION"))
-  cur_settings <- if (desc$has_fields("Settings/Connect")) eval(parse(text = desc$get_field("Settings/Connect"))) else list()
-  if (!is_bare_list(cur_settings)) {
-    cli::cli_warn("Ignoring malformed Connect settings in {.file DESCRIPTION}")
-    cur_settings <- list()
-  }
-  settings <- utils::modifyList(cur_settings, settings)
-  settings <- glue::glue_collapse(
-    glue::glue("      {names(settings)} = {settings}"),
-    sep = ",\n"
-  )
-  settings <- glue::glue("\n    list(\n{settings}\n    )", .trim = FALSE)
-  desc$set("Settings/Connect" = settings)
-  desc$write()
+  write_list_to_desc(desc, "Settings/Connect", settings)
+}
+
+#' @rdname use_settings
+#' @export
+use_r_settings <- function(...) {
+  settings <- list2(...)
+  desc <- desc::desc(usethis::proj_path("DESCRIPTION"))
+  write_list_to_desc(desc, "Settings/R", settings)
+}
+
+#' @rdname use_settings
+#' @export
+use_gha_settings <- function(...) {
+  settings <- list2(...)
+  desc <- desc::desc(usethis::proj_path("DESCRIPTION"))
+  write_list_to_desc(desc, "Settings/GHA", settings)
 }
 
 validate_connect_settings <- function(settings) {

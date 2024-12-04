@@ -34,15 +34,7 @@ use_envvars <- function(...) {
   }
 
   desc <- desc::desc(usethis::proj_path("DESCRIPTION"))
-  old_envs <- list()
-  if (desc$has_fields("Envvar")) {
-    old_envs <- eval(parse(text = desc$get_field("Envvar")))
-  }
-
-  old_envs[names(envs)] <- envs
-  old_envs <- old_envs[lengths(old_envs) > 0]
-
-  desc$set(Envvar = deparse(old_envs))
+  write_list_to_desc(desc, "Envvar", envs)
 
   invisible()
 }
@@ -81,12 +73,9 @@ set_envvars <- function() {
 
 get_envvars <- function() {
   desc <- desc::desc(usethis::proj_path("DESCRIPTION"))
-  vars <- list()
-  if (desc$has_fields("Envvar")) {
-    vars <- eval(parse(text = desc$get_field("Envvar")))
-    if (!is.list(vars) || is.null(names(vars)) || any(!vapply(vars, is.character, logical(1))) || any(lengths(vars) != 1)) {
-      cli::cli_abort("{.field Envvar} must contain a named list of strings")
-    }
+  vars <- eval_from_desc(desc, "Envvar")
+  if (length(vars) != 0 && (!is.list(vars) || is.null(names(vars)) || any(!vapply(vars, is.character, logical(1))) || any(lengths(vars) != 1))) {
+    cli::cli_abort("{.field Envvar} must contain a named list of strings")
   }
   vars
 }

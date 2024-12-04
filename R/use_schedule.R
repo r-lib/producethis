@@ -52,10 +52,10 @@ use_schedule <- function(minute = NULL, hour = NULL, day = NULL, weekday = NULL,
 
 get_connect_schedule <- function() {
   desc <- desc::desc(usethis::proj_path("DESCRIPTION"))
-  if (!desc$has_fields("Schedule")) {
+  schedule <- eval_from_desc(desc, "Schedule")
+  if (length(schedule) == 0) {
     return(NULL)
   }
-  schedule <- eval(parse(text = desc$get_field("Schedule")))
   if (!is.null(schedule$year)) connect_yearly(schedule)
   else if (!is.null(schedule$month)) connect_monthly(schedule)
   else if (!is.null(schedule$weekday) || !is.null(schedule$week)) connect_weekly(schedule)

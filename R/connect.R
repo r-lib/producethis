@@ -149,23 +149,18 @@ deploy_repo_to_connect <- function(branch = "gh-connect") {
   # Set additional stuff related to the environment using content_update
   cli::cli_bullets(c(">" = "Updating deployment settings"))
   settings <- get_connect_defaults()
-  if (desc$has_fields("Settings/Connect")) {
-    local_settings <- eval(parse(text = desc$get_field("Settings/Connect")))
-    validate_connect_settings(local_settings)
-    settings <- utils::modifyList(settings, local_settings)
-  }
+  local_settings <- eval_from_desc(desc, "Settings/Connect")
+  validate_connect_settings(local_settings)
+  settings <- utils::modifyList(settings, local_settings)
   connectapi::content_update(content, !!!settings)
 
   # Set environment variables
   # TODO: We need to make sure these values are propagated to user session and GHA
   cli::cli_bullets(c(">" = "Updating environment variables"))
   env <- connectapi::get_environment(content)
-  vars <- list()
-  if (desc$has_fields("Envvar")) {
-    vars <- eval(parse(text = desc$get_field("Envvar")))
-    if (!is.list(vars) || is.null(names(vars)) || any(!vapply(vars, is.character, logical(1))) || any(lengths(vars) != 1)) {
-      cli::cli_abort("{.field Envvar} must contain a named list of strings")
-    }
+  vars <- eval_from_desc(desc, "Envvar")
+  if (length(vars) != 0 && (!is.list(vars) || is.null(names(vars)) || any(!vapply(vars, is.character, logical(1))) || any(lengths(vars) != 1))) {
+    cli::cli_abort("{.field Envvar} must contain a named list of strings")
   }
   connectapi::set_environment_all(env, !!!vars)
 

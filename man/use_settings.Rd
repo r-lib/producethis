@@ -3,9 +3,15 @@
 \name{use_settings}
 \alias{use_settings}
 \alias{use_connect_settings}
+\alias{use_r_settings}
+\alias{use_gha_settings}
 \title{Provide additional settings for deployment}
 \usage{
 use_connect_settings(...)
+
+use_r_settings(...)
+
+use_gha_settings(...)
 }
 \arguments{
 \item{...}{key-value pairs of settings. See details for allowed names. Set

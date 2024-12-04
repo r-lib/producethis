@@ -2,10 +2,13 @@
 % Please edit documentation in R/use_envvars.R
 \name{use_envvars}
 \alias{use_envvars}
+\alias{use_local_envvars}
 \alias{set_envvars}
 \title{Add one or more environment variables to the project}
 \usage{
 use_envvars(...)
+
+use_local_envvars(...)
 
 set_envvars()
 }
