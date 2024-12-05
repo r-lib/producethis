@@ -41,7 +41,7 @@ write_list_to_desc <- function(desc, field, x) {
 
   x <- call_args(parse_expr(deparse1(x)))
   args <- lapply(x, deparse1)
-  arg_names <- vapply(names(x), function(x) capture.output(as.symbol(x)), character(1))
+  arg_names <- vapply(names(x), function(x) utils::capture.output(as.symbol(x)), character(1))
 
   x <- glue::glue_collapse(
     glue::glue("      {arg_names}{ifelse(nchar(arg_names) != 0, ' = ', '')}{args}"),
