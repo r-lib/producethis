@@ -10,8 +10,7 @@ Description: Automate tasks related to putting R code in production. Based on an
 License: MIT + file LICENSE
 Suggests:
     plumber,
-    shiny,
-    testthat (>= 3.0.0)
+    shiny
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -29,8 +28,10 @@ Imports:
     glue,
     httr2,
     lifecycle,
+    quarto,
     rlang (>= 1.1.0),
     rsconnect,
     sodium,
     usethis,
-    utils
+    utils,
+    testthat (>= 3.0.0)

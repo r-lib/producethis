@@ -30,9 +30,13 @@ jobs:
 
       - uses: quarto-dev/quarto-actions/setup@v2
 
+      - uses: r-lib/actions/setup-renv@v2
+        if: ${{ hashFiles('renv.lock') != '' }}
+
       - uses: r-lib/actions/setup-r-dependencies@v2
+        if: ${{ hashFiles('renv.lock') == '' }}
         with:
-          extra-packages: r-lib/producethis, any::testthat
+          extra-packages: r-lib/producethis
           needs: check
 
       - name: Check project
