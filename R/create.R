@@ -9,6 +9,7 @@
 #' @param type A string giving the type of project to create. Currently `"batch"`,
 #' `"app"`, `"api"`, and `"report"` is recognized.
 #' @inheritDotParams usethis::create_project -path
+#' @param report_type If `type` is `"report"`, what kind of report 
 #'
 #' @return Path to the newly created project, invisibly.
 #'

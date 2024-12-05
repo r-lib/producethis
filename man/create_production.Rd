@@ -36,6 +36,8 @@ that the directory can be recognized as a project by the
 \item If on RStudio server, the current RStudio project is activated.
 \item Otherwise, the working directory and active project is changed.
 }}
+
+\item{report_type}{If \code{type} is \code{"report"}, what kind of report}
 }
 \value{
 Path to the newly created project, invisibly.
