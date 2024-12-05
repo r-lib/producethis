@@ -297,3 +297,7 @@ prepare_for_connect_api <- function() {
   )
   rsconnect::writeManifest(appMode = "api")
 }
+
+proj_uses_connect <- function() {
+  unname(fs::file_exists(usethis::proj_path(".github", "workflows", "connect", ext = "yaml")))
+}

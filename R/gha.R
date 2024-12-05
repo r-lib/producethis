@@ -52,8 +52,8 @@ prepare_for_gha <- function() {
 
 create_execution_action <- function() {
   desc <- desc::desc(usethis::proj_path("DESCRIPTION"))
-  has_schedule <- desc$has_fields("Schedule")
-  schedule <- if (has_schedule) get_cron_schedule() else NULL
+  schedule <- get_cron_schedule(eval_from_desc(desc, "Schedule"))
+  has_schedule <- !is.null(schedule)
   envvars <- eval_from_desc(desc, "Envvar")
   envvars <- Map(\(x, y) list(name = x, value = y), x = names(envvars), y = envvars)
   settings <- eval_from_desc(desc, "Settings/gha")
@@ -75,4 +75,8 @@ create_execution_action <- function() {
 
 prepare_for_gha_batch <- function() {
   prepare_for_connect_batch()
+}
+
+proj_uses_gha <- function() {
+  unname(fs::file_exists(usethis::proj_path(".github", "workflows", "gha", ext = "yaml")))
 }
