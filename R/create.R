@@ -26,7 +26,7 @@ create_production <- function(path, type = c("batch", "app", "api", "report"), .
         "pak",
         "producethis"
       ), collapse = ",\n    ")
-    ))
+    ), check_name = FALSE, roxygen = FALSE)
 
     cli::cli_bullets(c("v" = "Creating {.file .Renviron}"))
     fs::file_create(".Renviron")
