@@ -1,5 +1,28 @@
-# TODO: timezone support
+#' Execute a deployed project on a schedule
+#'
+#' For projects that does not run continuously, such as APIs or apps, it may
+#' make sense to execute them periodically rather than only once when deployed
+#' or manually when you trigger it. This function records an intended execution
+#' schedule in the DESCRIPTION file that will be set during deployment. Do note
+#' that not all deployment environments support all scheduling settings. If it
+#' is deducible what type of deployment you are using the provided schedule will
+#' be tested before recording it.
+#'
+#' @param minute,hour,day,weekday,week,month,year Scheduling times. See Datails
+#' on how to set them
+#' @param x An interval or time location
+#' @param to The end of the schedule range
+#' @param step The step size of the schedule range
+#'
+#' @return
+#'
+#' @export
 use_schedule <- function(minute = NULL, hour = NULL, day = NULL, weekday = NULL, week = NULL, month = NULL, year = NULL) {
+  type <- tolower(desc::desc(usethis::proj_path("DESCRIPTION"))$get_field("Type"))
+  if (!type %in% c("batch", "report")) {
+    cli::cli_abort("Scheduling is only available for batch and report projects")
+  }
+  #TODO: timezone support
   if (is.character(month)) {
     if (all(nchar(month) == 3)) {
       month[] <- match(tolower(month), tolower(month.abb))
@@ -46,13 +69,54 @@ use_schedule <- function(minute = NULL, hour = NULL, day = NULL, weekday = NULL,
         year = {format(year)}
       )
   ")
+  call_value <- eval(parse_expr(call))
+  if (proj_uses_connect()) {
+    get_connect_schedule(call_value)
+  }
+  if (proj_uses_gha()) {
+    get_cron_schedule(call_value)
+  }
   desc$set("Schedule" = call)
   desc$write()
 }
 
-get_connect_schedule <- function() {
-  desc <- desc::desc(usethis::proj_path("DESCRIPTION"))
-  schedule <- eval_from_desc(desc, "Schedule")
+#' @rdname use_schedule
+#' @export
+at <- function(x = NULL, to = NULL, step = NULL) {
+  check_number_whole(to, allow_null = TRUE)
+  check_number_whole(step, allow_null = TRUE)
+  check_obj(x, \(x) is.null(x) || is_integerish(x) || is_character(x), "NULL or a vector of integers or strings")
+  if (length(x) > 1 && (!is.null(to) || !is.null(step))) {
+    cli::cli_abort("{.arg to} and {.arg step} can only be used if {.arg x} is a scalar")
+  }
+  if (is.null(x) && !is.null(to)) {
+    cli::cli_abort("{.arg to} cannot be given if {.arg x} is {.val NULL}")
+  }
+  structure(list(x), to = to, step = step, class = "schedule_at")
+}
+is_schedule_at <- function(x) inherits(x, "schedule_at")
+#' @export
+format.schedule_at <- function(x, ...) {
+  val <- x[[1]]
+  if (!is.null(val) && all(grepl("\\d", val))) val <- as.numeric(val)
+  glue::glue("at({deparse(val, 500)}{if (!is.null(attr(x, 'to'))) paste0(', to = ', deparse(attr(x, 'to'))) else ''}{if (!is.null(attr(x, 'step'))) paste0(', step = ', deparse(attr(x, 'step'))) else ''})")
+}
+
+#' @rdname use_schedule
+#' @export
+interval <- function(x) {
+  check_obj(x, \(x) is_integerish(x, 1, TRUE), "an integer")
+  structure(list(x), class = "schedule_interval")
+}
+is_schedule_interval <- function(x) inherits(x, "schedule_interval")
+#' @export
+format.schedule_interval <- function(x, ...) {
+  glue::glue("interval({deparse(x[[1]], 500)})")
+}
+
+# Connect Helpers --------------------------------------------------------------
+
+get_connect_schedule <- function(schedule) {
   if (length(schedule) == 0) {
     return(NULL)
   }
@@ -63,24 +127,6 @@ get_connect_schedule <- function() {
   else if (!is.null(schedule$hour)) connect_hourly(schedule)
   else if (!is.null(schedule$minute)) connect_minutely(schedule)
   else NULL
-}
-
-get_cron_schedule <- function() {
-  desc <- desc::desc(usethis::proj_path("DESCRIPTION"))
-  schedule <- eval_from_desc(desc, "Schedule")
-  if (length(schedule) == 0) {
-    return(NULL)
-  }
-  if (!is.null(schedule$week)) {
-    cli::cli_warn("Ignoring weekly schedules as it is not supported by cron")
-  }
-  if (!is.null(schedule$year)) {
-    cli::cli_warn("Ignoring yearly schedules as it is not supported by cron")
-  }
-  cron_schedules <- vapply(schedule[c("minute", "hour", "day", "month", "weekday")], function(x) {
-    at_as_cron(as_schedule_at(x))
-  }, character(1))
-  paste(cron_schedules, collapse = " ")
 }
 
 connect_yearly <- function(schedule) {
@@ -311,35 +357,22 @@ get_single_time <- function(x, time, name, call = caller_env()) {
   x
 }
 
-at <- function(x, to = NULL, step = NULL) {
-  check_number_whole(to, allow_null = TRUE)
-  check_number_whole(step, allow_null = TRUE)
-  check_obj(x, \(x) is.null(x) || is_integerish(x) || is_character(x), "NULL or a vector of integers or strings")
-  if (length(x) > 1 && (!is.null(to) || !is.null(step))) {
-    cli::cli_abort("{.arg to} and {.arg step} can only be used if {.arg x} is a scalar")
-  }
-  if (is.null(x) && !is.null(to)) {
-    cli::cli_abort("{.arg to} cannot be given if {.arg x} is {.val NULL}")
-  }
-  structure(list(x), to = to, step = step, class = "schedule_at")
-}
-is_schedule_at <- function(x) inherits(x, "schedule_at")
+# cron Helper ------------------------------------------------------------------
 
-as_schedule_at <- function(x, length = NULL) {
-  if (is_schedule_at(x)) {
-    return(x)
+get_cron_schedule <- function(schedule) {
+  if (length(schedule) == 0) {
+    return(NULL)
   }
-  if (is.null(x)) {
-    return(at(x))
+  if (!is.null(schedule$week)) {
+    cli::cli_warn("Ignoring weekly schedules as it is not supported by cron")
   }
-  if (!is_schedule_interval(x)) {
-    cli::cli_abort("{.arg x} must be {.val NULL} or a {.cls schedule_interval} object")
+  if (!is.null(schedule$year)) {
+    cli::cli_warn("Ignoring yearly schedules as it is not supported by cron")
   }
-  check_number_whole(length, allow_null = TRUE)
-  if (!is.null(length) && !is_integerish(length/x[[1]]) ) {
-    cli::cli_abort("The {length} isn't exactly divisible by the provided interval ({x[[1]]})")
-  }
-  at(NULL, step = x[[1]])
+  cron_schedules <- mapply(function(x, n) {
+    at_as_cron(as_schedule_at(x, n))
+  }, x = schedule[c("minute", "hour", "day", "month", "weekday")], n = c(60, 24, 30, 12, 1))
+  paste(cron_schedules, collapse = " ")
 }
 
 at_as_cron <- function(x) {
@@ -366,12 +399,25 @@ at_as_cron <- function(x) {
   }
   res
 }
-#' @export
-format.schedule_at <- function(x, ...) {
-  val <- x[[1]]
-  if (all(grepl("\\d", val))) val <- as.numeric(val)
-  glue::glue("at({deparse(val, 500)}{if (!is.null(attr(x, 'to'))) paste0(', to = ', deparse(attr(x, 'to'))) else ''}{if (!is.null(attr(x, 'step'))) paste0(', step = ', deparse(attr(x, 'step'))) else ''})")
+
+# at/interval Helpers ----------------------------------------------------------
+as_schedule_at <- function(x, length = NULL) {
+  if (is_schedule_at(x)) {
+    return(x)
+  }
+  if (is.null(x)) {
+    return(at(x))
+  }
+  if (!is_schedule_interval(x)) {
+    cli::cli_abort("{.arg x} must be {.val NULL} or a {.cls schedule_interval} object")
+  }
+  check_number_whole(length, allow_null = TRUE)
+  if (!is.null(length) && !is_integerish(length/x[[1]]) ) {
+    cli::cli_abort("The given length {length} isn't exactly divisible by the provided interval ({x[[1]]})")
+  }
+  at(NULL, step = x[[1]])
 }
+
 at_as_sequence <- function(x, max) {
   if (is.null(x)) return(seq(0, max))
   to <- attr(x, "to")
@@ -385,17 +431,8 @@ at_as_sequence <- function(x, max) {
   sequence
 }
 
-interval <- function(x) {
-  check_obj(x, \(x) is_integerish(x, 1, TRUE), "an integer")
-  structure(list(x), class = "schedule_interval")
-}
-is_schedule_interval <- function(x) inherits(x, "schedule_interval")
-#' @export
-format.schedule_interval <- function(x, ...) {
-  glue::glue("at({deparse(x[[1]], 500)})")
-}
-
 is_bare_schedule_value <- function(x) is.null(x) || is_schedule_at(x) || is_schedule_interval(x)
+
 as_schedule_value <- function(x) {
   if (!is_bare_schedule_value(x)) {
     at(x)
