@@ -33,7 +33,7 @@ use_github_connect <- function(from = c("main", "master")) {
       "Navigate to {.url {remote$host}/{remote$repository}/settings/secrets/actions}",
       "!" = "Set the {.field CONNECT_SERVER} secret to the URL of the Posit Connect server to deploy to",
       "!" = "Set the {.field CONNECT_API_KEY} secret to your API key for the server"
-    )[c(TRUE, success)])
+    )[c(TRUE, !success)])
   }
 }
 
