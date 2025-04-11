@@ -3,7 +3,7 @@
 #' ---
 #'
 
-scripts <- list.files("target", full.names = TRUE, recursive = TRUE)
+scripts <- list.files("exec", full.names = TRUE, recursive = TRUE)
 
 for (file in scripts) {
   source(file)

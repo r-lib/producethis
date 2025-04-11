@@ -3,7 +3,7 @@
 #' ---
 #'
 
-plumber::plumb(dir = "target/") |>
+plumber::plumb(dir = "exec/") |>
   plumber::pr_set_api_spec(
     function(spec) {
       spec$info$title <- "{{title}}"

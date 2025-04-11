@@ -16,7 +16,7 @@ use_schedule(
   year = NULL
 )
 
-at(x, to = NULL, step = NULL)
+at(x = NULL, to = NULL, step = NULL)
 
 interval(x)
 }

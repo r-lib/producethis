@@ -9,7 +9,7 @@
 #' @param type A string giving the type of project to create. Currently `"batch"`,
 #' `"app"`, `"api"`, and `"report"` is recognized.
 #' @inheritDotParams usethis::create_project -path
-#' @param report_type If `type` is `"report"`, what kind of report 
+#' @param report_type If `type` is `"report"`, what kind of report
 #'
 #' @return Path to the newly created project, invisibly.
 #'
@@ -36,24 +36,24 @@ create_production <- function(path, type = c("batch", "app", "api", "report"), .
     cli::cli_bullets(c("v" = "Creating {.file .Rprofile}"))
     prepare_rprofile()
 
-    usethis::use_directory("target")
+    usethis::use_directory("exec")
 
     switch(type,
       batch = {
         cli::cli_bullets(c("v" = "Creating {.file script.R}"))
-        fs::file_create(fs::path("target", "script", ext = "R"))
+        fs::file_create(fs::path("exec", "script", ext = "R"))
       },
       api = {
         cli::cli_bullets(c("v" = "Creating {.file plumber.R}"))
-        fs::file_create(fs::path("target", "plumber", ext = "R"))
+        fs::file_create(fs::path("exec", "plumber", ext = "R"))
       },
       app = {
         cli::cli_bullets(c("v" = "Creating {.file app.R}"))
-        fs::file_create(fs::path("target", "app", ext = "R"))
+        fs::file_create(fs::path("exec", "app", ext = "R"))
       },
       report = {
         cli::cli_bullets(c("v" = "Setting up Quarto project"))
-        quarto::quarto_create_project(type = report_type, dir = "target", no_prompt = TRUE)
+        quarto::quarto_create_project(type = report_type, dir = "exec", no_prompt = TRUE)
       }
     )
   }, quiet = TRUE)

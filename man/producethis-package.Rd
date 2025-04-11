@@ -12,6 +12,7 @@ Automate tasks related to putting R code in production. Based on an opinionated 
 Useful links:
 \itemize{
   \item \url{https://github.com/r-lib/producethis}
+  \item \url{https://r-lib.github.io/producethis/}
   \item Report bugs at \url{https://github.com/r-lib/producethis/issues}
 }
 
