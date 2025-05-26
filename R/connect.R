@@ -54,10 +54,12 @@ prepare_for_connect <- function() {
     batch = prepare_for_connect_batch(),
     app = prepare_for_connect_app(),
     api = prepare_for_connect_api(),
-    # report
-    cli::cli_abort("Type {.field {type}} not supported")
+    report = prepare_for_connect_report(),
+    cli::cli_abort("Type {.field {type}} not supported Posit Connect deployment")
   )
 }
+
+# TODO: All this needs rethinking in the face of main.R
 
 #' Deploys and updates project on Connect
 #'
@@ -166,7 +168,7 @@ deploy_repo_to_connect <- function(branch = "gh-connect") {
 
   # Set scheduling info
   cli::cli_bullets(c(">" = "Updating scheduling"))
-  schedule <- get_connect_schedule()
+  schedule <- get_connect_schedule(eval_from_desc(desc, "Schedule"))
   if (tolower(desc$get_field("Type")) %in% c("script", "report")) {
     cur_schedule <- connectapi::get_variant_schedule(connectapi::get_variant_default(content))
     connectapi::set_schedule_remove(cur_schedule)
@@ -295,6 +297,11 @@ prepare_for_connect_api <- function() {
       url = desc$get_field("BugReports")
     )
   )
+  rsconnect::writeManifest(appMode = "api")
+}
+
+prepare_for_connect_report <- function() {
+
   rsconnect::writeManifest(appMode = "api")
 }
 

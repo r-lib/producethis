@@ -1,21 +1,18 @@
 Package: producethis
 Title: Set Up Commonly Used 🏭 Components
 Version: 0.0.0.9000
-Authors@R:
+Authors@R: c(
     person("Thomas Lin", "Pedersen", , "thomas.pedersen@posit.co", role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0002-5147-4711"))
-Description: Automate tasks related to putting R code in production. Based on an
-    opinionated folder structure it provides a variety of helpers for testing,
-    deploying, and running R code in production.
+           comment = c(ORCID = "0000-0002-5147-4711")),
+    person("Posit Software, PBC", role = c("cph", "fnd"),
+           comment = c(ROR = "03wc8by49"))
+  )
+Description: Automate tasks related to putting R code in production. Based
+    on an opinionated folder structure it provides a variety of helpers
+    for testing, deploying, and running R code in production.
 License: MIT + file LICENSE
-Suggests:
-    plumber,
-    shiny
-Config/testthat/edition: 3
-Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
-URL: https://github.com/r-lib/producethis, https://r-lib.github.io/producethis/
+URL: https://github.com/r-lib/producethis,
+    https://r-lib.github.io/producethis/
 BugReports: https://github.com/r-lib/producethis/issues
 Imports:
     base64enc,
@@ -23,6 +20,7 @@ Imports:
     cli,
     connectapi,
     desc,
+    dployr (>= 0.0.0.9000),
     fs,
     gh,
     glue,
@@ -32,7 +30,13 @@ Imports:
     rlang (>= 1.1.0),
     rsconnect,
     sodium,
+    testthat (>= 3.0.0),
     usethis,
-    utils,
-    testthat (>= 3.0.0)
+    utils
 Config/Needs/website: tidyverse/tidytemplate
+Config/testthat/edition: 3
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Remotes:
+    thomasp85/dployr

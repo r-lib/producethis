@@ -1,3 +1,5 @@
+# TODO: Rethinking in the wake of main.R
+
 #' Mimick a Connect deployment locally
 #'
 #' This function allows you to make a dry run locally of your production code in
